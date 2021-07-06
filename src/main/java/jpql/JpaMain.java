@@ -14,23 +14,32 @@ public class JpaMain {
         try {
             Member member = new Member();
             member.setAge(10);
-            member.setUsername("jang");
+            member.setUsername("관리자1");
             member.setMemberType(MemberType.ADMIN);
             em.persist(member);
 
-            TypedQuery<Member> findResult = em.createQuery("select m from Member m where m.username = :username", Member.class); //반환타입이 명확할 때는 TypeQuery
-            findResult.setParameter("username", "jang");
-            Member singleResult = findResult.getSingleResult();
-            System.out.println("singleResult = " + singleResult.getUsername());
-            Query findResult2 = em.createQuery("select m.username, m.age from Member m"); //반환타입이 명확하지 않을 때는 Query
+            Member member2 = new Member();
+            member2.setAge(10);
+            member2.setUsername("관리자2");
+            member2.setMemberType(MemberType.ADMIN);
+            em.persist(member2);
 
-            List<Team> query = em.createQuery("select t from Member m join m.team t", Team.class).getResultList();
+            em.flush();
+            em.clear();
 
-            List<MemberDTO> resultList = em.createQuery("select new jpql.MemberDTO(m.username, m.age) from Member m", MemberDTO.class).getResultList();
-
-            MemberDTO memberDTO = resultList.get(0);
-            System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
-            System.out.println("memberDTO.getAge() = " + memberDTO.getAge());
+//            TypedQuery<Member> findResult = em.createQuery("select m from Member m where m.username = :username", Member.class); //반환타입이 명확할 때는 TypeQuery
+//            findResult.setParameter("username", "jang");
+//            Member singleResult = findResult.getSingleResult();
+//            System.out.println("singleResult = " + singleResult.getUsername());
+//            Query findResult2 = em.createQuery("select m.username, m.age from Member m"); //반환타입이 명확하지 않을 때는 Query
+//
+//            List<Team> query = em.createQuery("select t from Member m join m.team t", Team.class).getResultList();
+//
+//            List<MemberDTO> resultList = em.createQuery("select new jpql.MemberDTO(m.username, m.age) from Member m", MemberDTO.class).getResultList();
+//
+//            MemberDTO memberDTO = resultList.get(0);
+//            System.out.println("memberDTO.getUsername() = " + memberDTO.getUsername());
+//            System.out.println("memberDTO.getAge() = " + memberDTO.getAge());
 
 //            Object o = resultList.get(0);
 //            Object[] result = (Object[]) o;
@@ -48,6 +57,36 @@ public class JpaMain {
                 System.out.println("objects[2] = " + objects[2]);
             }
 
+            /* 단순 case 식 */
+            String query3 =
+                    "select " +
+                            "case when m.age <= 10 then '학생요금' " +
+                            "     when m.age >= 60 then '경로요금' " +
+                            "     else '일반요금' " +
+                            "end " +
+                    "from Member m";
+            List<String> resultList2 = em.createQuery(query3, String.class).getResultList();
+
+            for (String s : resultList2) {
+                System.out.println("s = " + s);
+            }
+
+            /* 조건 case 식 */
+            //사용자 이름이 없으면 이름 없는 회원을 반환
+//            String query4 = "select coalesce(m.username, '이름없는 회원') from Member m";
+            String query4 = "select nullif(m.username, '관리자') from Member m";
+            List<String> resultList3 = em.createQuery(query4, String.class).getResultList();
+            for (String s : resultList3) {
+                System.out.println("s = " + s);
+            }
+
+            //language=JPAQL
+            String query5 = "select function('group_concat', m.username) from Member m";
+
+            List<String> resultList = em.createQuery(query5, String.class).getResultList();
+            for (String s : resultList) {
+                System.out.println("s = " + s);
+            }
 
             tx.commit();
         }catch (Exception e) {
