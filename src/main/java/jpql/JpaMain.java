@@ -15,6 +15,7 @@ public class JpaMain {
             Member member = new Member();
             member.setAge(10);
             member.setUsername("jang");
+            member.setMemberType(MemberType.ADMIN);
             em.persist(member);
 
             TypedQuery<Member> findResult = em.createQuery("select m from Member m where m.username = :username", Member.class); //반환타입이 명확할 때는 TypeQuery
@@ -35,6 +36,17 @@ public class JpaMain {
 //            Object[] result = (Object[]) o;
 //            System.out.println("result[0] = " + result[0]);
 //            System.out.println("result[0] = " + result[1]);
+
+            /* JPQL 타입 표현과 기타 */
+            String query2 = "select m.username, 'HELLO', true From Member m " +
+                           "where m.memberType = jpql.MemberType.USER";
+            List<Object[]> resultList1 = em.createQuery(query2).getResultList();
+
+            for (Object[] objects : resultList1) {
+                System.out.println("objects[0] = " + objects[0]);
+                System.out.println("objects[1] = " + objects[1]);
+                System.out.println("objects[2] = " + objects[2]);
+            }
 
 
             tx.commit();
